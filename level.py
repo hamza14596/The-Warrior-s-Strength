@@ -1,5 +1,8 @@
 import pygame
 from settings import *
+from map import Tile
+from warrior import Warrior
+from debug import debug
 
 
 class Level:
@@ -12,8 +15,15 @@ class Level:
         self.create_map()
 
     def create_map(self):
-        for row in WORLD_MAP:
-            print(row)
-
+        for row_index,row in enumerate(WORLD_MAP):
+            for col_index, col in enumerate(row):
+                x = col_index * TILESIZE
+                y = row_index * TILESIZE
+                if col == 'x':
+                    Tile((x,y),[self.visible_sprites,self.obstacle_sprites])
+                if col == 'p':
+                    self.player = Warrior((x,y),[self.visible_sprites])
     def run(self):
-        pass
+        self.visible_sprites.draw(self.display_surface)
+        self.visible_sprites.update()
+        debug(self.player.direction)
