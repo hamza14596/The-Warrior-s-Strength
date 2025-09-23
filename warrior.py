@@ -45,6 +45,10 @@ class Warrior(Entity):
         self.exp = 100
         self.speed = self.stats['speed']
 
+        self.vulnerable = True
+        self.hurt_time = None
+        self.invulnerability_duration = 500
+
     def import_player_assets(self):
         character_path = 'graphics/player/'
         self.animations = {'up': [],'down':[],'left':[],'right':[],
@@ -149,6 +153,10 @@ class Warrior(Entity):
                 if current_time - self.magic_change_time >= self.weapon_switch_cooldown:
                     self.can_change_magic = True
 
+            if not self.vulnerable:
+                if current_time - self.hurt_time >= self.invulnerability_duration:
+                    self.vulnerable = True
+
     def animate(self):
         animation = self.animations[self.status]
 
@@ -158,6 +166,8 @@ class Warrior(Entity):
 
         self.image = animation[int(self.frame_index)]
         self.rect = self.image.get_rect(center = self.hitbox.center)
+
+
 
     def get_full_weapon_damage(self):
         base_damage =  self.stats['attack']
