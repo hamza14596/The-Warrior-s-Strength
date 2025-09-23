@@ -7,6 +7,7 @@ from help import import_csv_layout, import_folder
 from random import choice
 from arms import Arms
 from UI import UI
+from opponents import Enemy
 
 
 class Level:
@@ -26,7 +27,8 @@ class Level:
         layouts = {
             'boundary': import_csv_layout('map/map_FloorBlocks.csv'),
             'grass' : import_csv_layout('map/map_Grass.csv'),
-            'object' : import_csv_layout('map/map_Objects.csv')
+            'object' : import_csv_layout('map/map_Objects.csv'),
+            'entities' : import_csv_layout('map/map_Entities.csv')
         }
         
         graphics = {
@@ -51,15 +53,25 @@ class Level:
                             surf = graphics['objects'][int(col)]
                             Tile((x,y),[self.visible_sprites,self.obstacle_sprites],'object', surf) 
 
+                        if style == 'entities':
+                            if col == '394':
+                                self.player = Warrior(
+                                    (x,y),
+                                    [self.visible_sprites],
+                                    self.obstacle_sprites,
+                                    self.create_attack,
+                                    self.destroy_attack,
+                                    self.create_magic)
+                            else:
+                                if col == '390': monster_name = 'bamboo'
+                                elif col =='391' : monster_name = 'spirit'
+                                elif col == '392' : monster_name = 'raccoon'
+                                else: monster_name = 'squid'
+                                Enemy(monster_name,(x,y),[self.visible_sprites])
 
-        self.player = Warrior(
-            (2000,1430),
-            [self.visible_sprites],
-            self.obstacle_sprites,
-            self.create_attack,
-            self.destroy_attack,
-            self.create_magic)
-    
+
+
+
     def create_attack(self):
         self.current_attack= Arms(self.player,[self.visible_sprites])
 

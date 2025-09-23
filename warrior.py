@@ -1,8 +1,10 @@
 import pygame
 from settings import *
 from help import import_folder
+from entity import Entity
 
-class Warrior(pygame.sprite.Sprite):
+
+class Warrior(Entity):
     def __init__(self,pos,groups, obstacle_sprites, create_attack,destroy_attack, create_magic):
         super().__init__(groups)
         self.image= pygame.image.load('graphics/test/player.png').convert_alpha()
@@ -11,10 +13,9 @@ class Warrior(pygame.sprite.Sprite):
 
         self.import_player_assets()
         self.status = 'down'
-        self.frame_index = 0
-        self.animation_speed = 0.15
 
-        self.direction = pygame.math.Vector2(0,0)
+
+
         self.speed = 10
         self.attacking = False
         self.attack_cooldown = 400
@@ -131,31 +132,6 @@ class Warrior(pygame.sprite.Sprite):
             if 'attack' in self.status:
                 self.status = self.status.replace('_attack','')
 
-    def move(self, speed):
-        if self.direction.magnitude() != 0:
-            self.direction = self.direction.normalize()
-
-        self.hitbox.x += self.direction.x * speed
-        self.collisions('horizontal')
-        self.hitbox.y += self.direction.y * speed
-        self.collisions('vertical')
-        self.rect.center = self.hitbox.center        
-
-    def collisions(self, direction):
-        if direction == 'horizontal':
-            for sprite in self.obstacle_sprites:
-                if sprite.hitbox.colliderect(self.hitbox):
-                    if self.direction.x > 0:
-                        self.hitbox.right = sprite.hitbox.left
-                    if self.direction.x < 0: 
-                        self.hitbox.left = sprite.hitbox.right
-        if direction == 'vertical':
-            for sprite in self.obstacle_sprites:
-                if sprite.hitbox.colliderect(self.hitbox):
-                    if self.direction.y > 0:
-                        self.hitbox.bottom = sprite.hitbox.top
-                    if self.direction.y < 0: 
-                        self.hitbox.top = sprite.hitbox.bottom
 
     def cooldowns(self):
         current_time = pygame.time.get_ticks()
