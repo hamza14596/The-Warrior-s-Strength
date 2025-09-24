@@ -47,7 +47,7 @@ class Warrior(Entity):
 
         self.vulnerable = True
         self.hurt_time = None
-        self.invulnerability_duration = 500
+        self.invulnerability_duration = 100
 
     def import_player_assets(self):
         character_path = 'graphics/player/'
@@ -144,18 +144,21 @@ class Warrior(Entity):
             if current_time - self.attack_time >= self.attack_cooldown + weapon_data[self.weapon]['cooldown']:
                 self.attacking = False
                 self.destroy_attack()
+        
+        if not self.can_change_weapon:
+            if current_time - self.change_weapon_time >= self.weapon_switch_cooldown:
+                self.can_change_weapon = True
 
-            if not self.can_change_weapon :
-                if current_time - self.change_weapon_time >= self.weapon_switch_cooldown:
-                    self.can_change_weapon = True
+        
+        if not self.can_change_magic:
+            if current_time - self.magic_change_time >= self.weapon_switch_cooldown:
+                self.can_change_magic = True
 
-            if not self.can_change_magic :
-                if current_time - self.magic_change_time >= self.weapon_switch_cooldown:
-                    self.can_change_magic = True
+      
+        if not self.vulnerable:
+            if current_time - self.hurt_time >= self.invulnerability_duration:
+                self.vulnerable = True
 
-            if not self.vulnerable:
-                if current_time - self.hurt_time >= self.invulnerability_duration:
-                    self.vulnerable = True
 
     def animate(self):
         animation = self.animations[self.status]
@@ -166,6 +169,12 @@ class Warrior(Entity):
 
         self.image = animation[int(self.frame_index)]
         self.rect = self.image.get_rect(center = self.hitbox.center)
+
+        if not self.vulnerable:
+            alpha = self.wave_value()
+            self.image.set_alpha(alpha)
+        else:
+            self.image.set_alpha(255)
 
 
 

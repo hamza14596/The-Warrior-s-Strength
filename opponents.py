@@ -113,7 +113,7 @@ class Enemy(Entity):
                 self.can_attack = True
 
         if not self.vulnerable:
-            if current_time - self.hit_time >= self.invincibility_duration:
+            if current_time - self.hurt_time >= self.invincibility_duration:
                 self.vulnerable = True
             
     def get_damage(self,player, attack_type):
@@ -123,7 +123,7 @@ class Enemy(Entity):
                 self.health -= player.get_full_weapon_damage()
             else:
                 pass
-            self.hit_time = pygame.time.get_ticks()
+            self.hurt_time = pygame.time.get_ticks()
             self.vulnerable = False
 
     def check_death(self):
