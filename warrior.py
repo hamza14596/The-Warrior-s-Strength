@@ -182,6 +182,12 @@ class Warrior(Entity):
         base_damage =  self.stats['attack']
         weapon_damage = weapon_data[self.weapon]['damage']
         return base_damage + weapon_damage
+    
+    def energy_recovery(self):
+        if self.energy < self.stats['energy']:
+            self.energy += 0.095 * self.stats['magic']
+        else:
+            self.energy = self.stats['energy']
 
     def update(self):
         self.input()
@@ -189,3 +195,4 @@ class Warrior(Entity):
         self.get_status()
         self.animate()
         self.move(self.speed)
+        self.energy_recovery()
