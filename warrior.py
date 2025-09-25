@@ -39,10 +39,12 @@ class Warrior(Entity):
         self.magic_change_time = None
         
 
-        self.stats = {'health':100,'energy':60,'attack':10, 'magic':4, 'speed':6}
+        self.stats = {'health':100,'energy':60,'attack':10, 'magic':4, 'speed':4}
+        self.max_stats = {'health': 500, 'energy' : 170, 'attack' : 30, 'magic' : 12, 'speed' : 15}
+        self.upgrade_cost = {'health': 100, 'energy' : 100, 'attack' : 100, 'magic' : 100, 'speed' : 100}
         self.health = self.stats['health']
         self.energy = self.stats['energy']
-        self.exp = 100
+        self.exp = 500
         self.speed = self.stats['speed']
 
         self.vulnerable = True
@@ -182,6 +184,11 @@ class Warrior(Entity):
         base_damage =  self.stats['attack']
         weapon_damage = weapon_data[self.weapon]['damage']
         return base_damage + weapon_damage
+    
+    def get_full_magic_damage(self):
+        base_damage = self.stats['magic']
+        spell_damage = magic_data[self.magic]['strength']
+        return base_damage + spell_damage
     
     def energy_recovery(self):
         if self.energy < self.stats['energy']:

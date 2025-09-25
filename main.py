@@ -1,5 +1,5 @@
 import pygame,sys
-from settings import *
+from settings import * 
 from level import Level
 
 class Game:
@@ -19,6 +19,9 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit() 
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_p:
+                        self.level.toggle_menu()
 
             self.screen.fill('black')
             self.level.run()
