@@ -13,7 +13,7 @@ class Warrior(Entity):
 
         self.import_player_assets()
         self.status = 'down'
-
+       
 
 
         self.speed = 10
@@ -38,11 +38,33 @@ class Warrior(Entity):
         self.can_change_magic = True
         self.magic_change_time = None
         
+        self.base_stats = {
+            'health': 100,
+            'energy': 60,
+            'attack': 10,
+            'magic': 4,
+            'speed': 5
+        }
+        self.base_max_stats = {
+            'health': 100,
+            'energy': 60,
+            'attack': 10,
+            'magic': 4,
+            'speed': 5
+        }
+        self.base_upgrade_costs = {
+            'health': 100,
+            'energy': 100,
+            'attack': 100,
+            'magic': 100,
+            'speed': 100
+        }
 
         self.stats = {'health':100,'energy':60,'attack':10, 'magic':4, 'speed':4}
         self.max_stats = {'health': 500, 'energy' : 170, 'attack' : 30, 'magic' : 12, 'speed' : 15}
         self.upgrade_cost = {'health': 100, 'energy' : 100, 'attack' : 100, 'magic' : 100, 'speed' : 100}
         self.health = self.stats['health']
+        self.alive = True
         self.energy = self.stats['energy']
         self.exp = 5000
         self.speed = self.stats['speed']
@@ -64,6 +86,14 @@ class Warrior(Entity):
             full_path = character_path + animation
             self.animations[animation] = import_folder(full_path)
         
+    def reset(self):
+        self.stats = self.base_stats.copy()
+        self.health = self.stats['health']
+        self.energy = self.stats['energy']
+        self.exp = 0
+        self.alive = True
+        self.rect.center = (400, 300) 
+
     def input(self):
         if not self.attacking:
             keys = pygame.key.get_pressed()
@@ -207,10 +237,17 @@ class Warrior(Entity):
         else:
             self.energy = self.stats['energy']
 
+
     def update(self):
-        self.input()
-        self.cooldowns()
-        self.get_status()
-        self.animate()
-        self.move(self.stats['speed'])
-        self.energy_recovery()
+        if self.health > 0:
+            self.input()
+            self.cooldowns()
+            self.get_status()
+            self.animate()
+            self.move(self.stats['speed'])
+            self.energy_recovery()
+        else:
+            self.alive = False
+            self.direction.x = 0
+            self.direction.y = 0
+

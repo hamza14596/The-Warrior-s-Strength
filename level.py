@@ -33,6 +33,9 @@ class Level:
         self.animation_player = AnimationPlayer()
         self.magic_player = MagicPlayer(self.animation_player)
 
+        self.death_screen = DeathScreen(pygame.display.get_surface())
+
+
 
 
     def create_map(self):
@@ -138,13 +141,39 @@ class Level:
         self.visible_sprites.custom_draw(self.player) 
         self.ui.display(self.player)
 
+        if not self.player.alive:
+            self.death_screen.draw()
+            if self.death_screen.check_input():
+                self.restart()
+            return  # stop updating while dead
+
         if self.game_paused:
             self.upgrade.display()
         else:
             self.visible_sprites.update()
             self.visible_sprites.enemy_update(self.player)
             self.player_attack_logic()
+
+    def restart(self):
+      
+        self.player.stats = self.player.base_stats.copy()
+
+        self.player.upgrade_cost = self.player.base_upgrade_costs.copy()
+
        
+        self.player.health = self.player.stats['health']
+        self.player.energy = self.player.stats['energy']
+        self.player.alive = True
+        self.player.vulnerable = True
+        self.player.attacking = False
+
+       
+        self.player.rect.center = (400, 300)
+
+        if hasattr(self, 'upgrade'):
+            self.upgrade.attribute_names = list(self.player.stats.keys())
+            self.upgrade.max_values = list(self.player.max_stats.values()) 
+            self.upgrade.attribute_number = len(self.player.stats)
 
 class YSortCameraGroup(pygame.sprite.Group):
     def __init__(self):   
@@ -177,19 +206,33 @@ class YSortCameraGroup(pygame.sprite.Group):
 
 
 class DeathScreen:
-    def __init__(self):
-        self.display_surface = pygame.display.get_surface()
-        self.font = pygame.font.Font(UI_FONT, 60) 
+    def __init__(self, surface):
+        self.display_surface = surface
+        self.font_large = pygame.font.Font(UI_FONT, 70)
+        self.font_small = pygame.font.Font(UI_FONT, 25)
 
     def draw(self):
-    
         overlay = pygame.Surface(self.display_surface.get_size())
         overlay.fill((0, 0, 0))
-        overlay.set_alpha(150) 
+        overlay.set_alpha(180)
         self.display_surface.blit(overlay, (0, 0))
 
-       
-        text_surf = self.font.render("YOU DIED", True, (200, 0, 0))
-        text_rect = text_surf.get_rect(center=(self.display_surface.get_width() // 2,
-                                               self.display_surface.get_height() // 2))
+        text_surf = self.font_large.render("YOU DIED", True, (190, 0, 0))
+        text_rect = text_surf.get_rect(center=(
+            self.display_surface.get_width()//2,
+            self.display_surface.get_height()//2
+        ))
         self.display_surface.blit(text_surf, text_rect)
+
+        small_surf = self.font_small.render("Press any key to respawn", True, (230, 230, 230))
+        small_rect = small_surf.get_rect(center=(
+            self.display_surface.get_width()//2,
+            text_rect.centery + 60
+        ))
+        self.display_surface.blit(small_surf, small_rect)
+
+    def check_input(self):
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                return True
+        return False
