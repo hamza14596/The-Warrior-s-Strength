@@ -12,6 +12,9 @@ class Game:
 
         self.level = Level()
 
+        main_sound = pygame.mixer.Sound('audio/main.mp3')
+        main_sound.play( loops = -1)
+
 
     def run(self):
         while True:
@@ -23,7 +26,7 @@ class Game:
                     if event.key == pygame.K_p:
                         self.level.toggle_menu()
 
-            self.screen.fill('black')
+            self.screen.fill(WATER_COLOUR)
             self.level.run()
             pygame.display.update()
             self.clock.tick(FPS)

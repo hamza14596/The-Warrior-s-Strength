@@ -33,6 +33,8 @@ class Level:
         self.animation_player = AnimationPlayer()
         self.magic_player = MagicPlayer(self.animation_player)
 
+
+
     def create_map(self):
         layouts = {
             'boundary': import_csv_layout('map/map_FloorBlocks.csv'),
@@ -145,7 +147,7 @@ class Level:
        
 
 class YSortCameraGroup(pygame.sprite.Group):
-    def __init__(self):   # correct init
+    def __init__(self):   
         super().__init__()
         self.display_surface = pygame.display.get_surface()
         self.half_width = self.display_surface.get_size()[0] // 2
@@ -172,3 +174,22 @@ class YSortCameraGroup(pygame.sprite.Group):
         enemy_sprites = [sprite for sprite in self.sprites() if hasattr(sprite, 'sprite_type') and  sprite.sprite_type == 'enemy']
         for enemy in enemy_sprites:
             enemy.enemy_update(player)
+
+
+class DeathScreen:
+    def __init__(self):
+        self.display_surface = pygame.display.get_surface()
+        self.font = pygame.font.Font(UI_FONT, 60) 
+
+    def draw(self):
+    
+        overlay = pygame.Surface(self.display_surface.get_size())
+        overlay.fill((0, 0, 0))
+        overlay.set_alpha(150) 
+        self.display_surface.blit(overlay, (0, 0))
+
+       
+        text_surf = self.font.render("YOU DIED", True, (200, 0, 0))
+        text_rect = text_surf.get_rect(center=(self.display_surface.get_width() // 2,
+                                               self.display_surface.get_height() // 2))
+        self.display_surface.blit(text_surf, text_rect)
