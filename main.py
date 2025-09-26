@@ -12,8 +12,6 @@ class Game:
 
         self.level = Level()
 
-        main_sound = pygame.mixer.Sound('audio/main.mp3')
-        main_sound.play( loops = -1)
 
 
     def run(self):

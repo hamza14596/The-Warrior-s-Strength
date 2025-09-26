@@ -13,6 +13,7 @@ from magic import MagicPlayer
 from upgrade import Upgrade
 
 
+
 class Level:
     def __init__(self):
         self.display_surface = pygame.display.get_surface()
@@ -34,6 +35,10 @@ class Level:
         self.magic_player = MagicPlayer(self.animation_player)
 
         self.death_screen = DeathScreen(pygame.display.get_surface())
+
+        self.main_sound = pygame.mixer.Sound('audio/main.mp3')
+        self.main_sound.play( loops = -1)
+        self.death_sound = pygame.mixer.Sound("audio/died.mp3")
 
 
 
@@ -142,10 +147,24 @@ class Level:
         self.ui.display(self.player)
 
         if not self.player.alive:
-            self.death_screen.draw()
-            if self.death_screen.check_input():
+            # stop bg music once + play death sfx once
+            if not hasattr(self, "death_sound_played") or not self.death_sound_played:
+                self.main_sound.stop()
+                self.death_sound.play()
+                self.death_sound_played = True
+
+            # check if sound is still playing
+            sound_done = not self.death_sound.get_num_channels()
+
+            # draw screen, but only show respawn text if sound finished
+            self.death_screen.draw(show_respawn_text=sound_done)
+
+            # allow input only after sound finished
+            if sound_done and self.death_screen.check_input():
                 self.restart()
-            return  # stop updating while dead
+                self.main_sound.play(loops=-1)
+                self.death_sound_played = False
+            return  
 
         if self.game_paused:
             self.upgrade.display()
@@ -211,7 +230,7 @@ class DeathScreen:
         self.font_large = pygame.font.Font(UI_FONT, 70)
         self.font_small = pygame.font.Font(UI_FONT, 25)
 
-    def draw(self):
+    def draw(self, show_respawn_text=False):
         overlay = pygame.Surface(self.display_surface.get_size())
         overlay.fill((0, 0, 0))
         overlay.set_alpha(180)
@@ -224,12 +243,13 @@ class DeathScreen:
         ))
         self.display_surface.blit(text_surf, text_rect)
 
-        small_surf = self.font_small.render("Press any key to respawn", True, (230, 230, 230))
-        small_rect = small_surf.get_rect(center=(
-            self.display_surface.get_width()//2,
-            text_rect.centery + 60
-        ))
-        self.display_surface.blit(small_surf, small_rect)
+        if show_respawn_text:
+            small_surf = self.font_small.render("Press any key to respawn", True, (230, 230, 230))
+            small_rect = small_surf.get_rect(center=(
+                self.display_surface.get_width()//2,
+                text_rect.centery + 60
+            ))
+            self.display_surface.blit(small_surf, small_rect)
 
     def check_input(self):
         for event in pygame.event.get():
