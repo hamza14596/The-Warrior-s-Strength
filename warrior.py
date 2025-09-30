@@ -66,7 +66,7 @@ class Warrior(Entity):
         self.health = self.stats['health']
         self.alive = True
         self.energy = self.stats['energy']
-        self.exp = 5000
+        self.exp = 500
         self.speed = self.stats['speed']
 
         self.vulnerable = True
@@ -142,7 +142,7 @@ class Warrior(Entity):
                 self.weapon = list(weapon_data.keys())[self.weapon_index]
                 
 
-            if keys[pygame.K_n] and self.can_change_magic:
+            if keys[pygame.K_e] and self.can_change_magic:
                 self.can_change_magic = False
                 self.magic_change_time = pygame.time.get_ticks()
                 

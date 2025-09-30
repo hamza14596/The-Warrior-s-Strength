@@ -46,57 +46,53 @@ class Level:
     def create_map(self):
         layouts = {
             'boundary': import_csv_layout('map/map_FloorBlocks.csv'),
-            'grass' : import_csv_layout('map/map_Grass.csv'),
-            'object' : import_csv_layout('map/map_Objects.csv'),
-            'entities' : import_csv_layout('map/map_Entities.csv')
+            'grass': import_csv_layout('map/map_Grass.csv'),
+            'object': import_csv_layout('map/map_Objects.csv'),
+            'entities': import_csv_layout('map/map_Entities.csv')
         }
-        
+
         graphics = {
-            'grass' : import_folder('graphics/grass'),
-            'objects' : import_folder('graphics/objects')
-            
+            'grass': import_folder('graphics/grass'),
+            'objects': import_folder('graphics/objects')
         }
 
-
-        for style,layout in layouts.items():
-            for row_index,row in enumerate(layout):
+        # Create tiles
+        for style, layout in layouts.items():
+            for row_index, row in enumerate(layout):
                 for col_index, col in enumerate(row):
-                    if col != '-1':
-                        x = col_index * TILESIZE
-                        y = row_index * TILESIZE
-                        if style == 'boundary':
-                            Tile((x,y),[self.obstacle_sprites],'invisible')
-                        if style == 'grass':
-                            random_grass_image = choice(graphics['grass'])
-                            Tile((x,y),[self.visible_sprites,self.obstacle_sprites,self.attackable_sprites],'grass', random_grass_image)
-                        if style == 'object':
-                            surf = graphics['objects'][int(col)]
-                            Tile((x,y),[self.visible_sprites,self.obstacle_sprites],'object', surf) 
+                    if col == '-1':
+                        continue
+                    x = col_index * TILESIZE
+                    y = row_index * TILESIZE
 
-                        if style == 'entities':
-                            if col == '394':
-                                self.player = Warrior(
-                                    (x,y),
-                                    [self.visible_sprites],
-                                    self.obstacle_sprites,
-                                    self.create_attack,
-                                    self.destroy_attack,
-                                    self.create_magic)
-                            else:
-                                if col == '390': monster_name = 'bamboo'
-                                elif col =='391' : monster_name = 'spirit'
-                                elif col == '392' : monster_name = 'raccoon'
-                                else: monster_name = 'squid'
-                                Enemy(
-                                    monster_name,
-                                    (x,y),
-                                    [self.visible_sprites,self.attackable_sprites],
-                                    self.obstacle_sprites, 
-                                    self.damage_player,
-                                    self.trigger_death_particles,
-                                    self.add_exp)
+                    if style == 'boundary':
+                        Tile((x, y), [self.obstacle_sprites], 'invisible')
+                    elif style == 'grass':
+                        random_grass_image = choice(graphics['grass'])
+                        Tile((x, y), [self.visible_sprites, self.obstacle_sprites, self.attackable_sprites], 'grass', random_grass_image)
+                    elif style == 'object':
+                        surf = graphics['objects'][int(col)]
+                        Tile((x, y), [self.visible_sprites, self.obstacle_sprites], 'object', surf)
 
+        # Create player
+        for row_index, row in enumerate(layouts['entities']):
+            for col_index, col in enumerate(row):
+                if col == '394':  # player
+                    x = col_index * TILESIZE
+                    y = row_index * TILESIZE
+                    self.player = Warrior(
+                        (x, y),
+                        [self.visible_sprites],
+                        self.obstacle_sprites,
+                        self.create_attack,
+                        self.destroy_attack,
+                        self.create_magic
+                    )
 
+        # Create enemies
+        self.create_enemies()
+
+                        
     def create_attack(self):
         self.current_attack= Arms(self.player,[self.visible_sprites,self.attack_sprites])
 
@@ -173,27 +169,48 @@ class Level:
             self.visible_sprites.enemy_update(self.player)
             self.player_attack_logic()
 
+    def create_enemies(self):
+        layouts = import_csv_layout('map/map_Entities.csv')
+        for row_index,row in enumerate(layouts):
+            for col_index, col in enumerate(row):
+                if col not in ('-1','394'):  # 394 = player
+                    x = col_index * TILESIZE
+                    y = row_index * TILESIZE
+                    if col == '390': monster_name = 'bamboo'
+                    elif col == '391': monster_name = 'spirit'
+                    elif col == '392': monster_name = 'raccoon'
+                    else: monster_name = 'squid'
+                    Enemy(
+                        monster_name,
+                        (x,y),
+                        [self.visible_sprites,self.attackable_sprites],
+                        self.obstacle_sprites,
+                        self.damage_player,
+                        self.trigger_death_particles,
+                        self.add_exp)
+
     def restart(self):
-      
+
         self.player.stats = self.player.base_stats.copy()
-
         self.player.upgrade_cost = self.player.base_upgrade_costs.copy()
-
-       
         self.player.health = self.player.stats['health']
         self.player.energy = self.player.stats['energy']
         self.player.alive = True
         self.player.vulnerable = True
         self.player.attacking = False
-
-       
-        self.player.rect.center = (400, 300)
+        self.player.rect.center = (400,300)
 
         if hasattr(self, 'upgrade'):
             self.upgrade.attribute_names = list(self.player.stats.keys())
-            self.upgrade.max_values = list(self.player.max_stats.values()) 
+            self.upgrade.max_values = list(self.player.max_stats.values())
             self.upgrade.attribute_number = len(self.player.stats)
 
+        for sprite in self.attackable_sprites:
+            if hasattr(sprite, 'sprite_type') and sprite.sprite_type == 'enemy':
+                sprite.kill()
+
+        self.create_enemies()
+        
 class YSortCameraGroup(pygame.sprite.Group):
     def __init__(self):   
         super().__init__()
@@ -204,6 +221,7 @@ class YSortCameraGroup(pygame.sprite.Group):
 
         self.floor_surf = pygame.image.load('graphics/tilemap/ground.png').convert()
         self.floor_rect = self.floor_surf.get_rect(topleft = (0,0))
+
 
     def custom_draw(self, player):
         
@@ -217,7 +235,7 @@ class YSortCameraGroup(pygame.sprite.Group):
         for sprite in sorted(self.sprites(), key=lambda sprite: sprite.rect.centery):
             offset_pos = sprite.rect.topleft - self.offset
             self.display_surface.blit(sprite.image, offset_pos)
-
+    
     def enemy_update(self, player):
         enemy_sprites = [sprite for sprite in self.sprites() if hasattr(sprite, 'sprite_type') and  sprite.sprite_type == 'enemy']
         for enemy in enemy_sprites:
